@@ -91,9 +91,15 @@ def index():
                                            per_page_parameter='per_page')
     total = len(data)
     pagination_users = get_users(data, offset=offset, per_page=per_page)
-    # pagination = Pagination(page=page, per_page=per_page, total=total,
-    #                         css_framework='bootstrap4')
-    return Response(json.dumps(pagination_users), mimetype='application/json')
+    pagination = Pagination(page=page, per_page=per_page, total=total,
+                            css_framework='bootstrap4')
+    return Response(json.dumps(pagination_users), mimetype='application/json') if request.args.get(
+        'ui') is None else render_template('index.html',
+                                           users=pagination_users,
+                                           page=page,
+                                           per_page=per_page,
+                                           pagination=pagination,
+                                           )
 
 
 @app.route('/search')
