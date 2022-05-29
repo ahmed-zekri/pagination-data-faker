@@ -94,7 +94,7 @@ def index():
     pagination = Pagination(page=page, per_page=per_page, total=total,
                             css_framework='bootstrap4')
     return Response(json.dumps(pagination_users), mimetype='application/json') if request.args.get(
-        'ui') is None else render_template('index.html',
+        'ui') is None else render_template('index.html' if request.args.get('data') == 'user' else 'indexCar.html',
                                            users=pagination_users,
                                            page=page,
                                            per_page=per_page,
