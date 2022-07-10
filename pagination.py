@@ -20,7 +20,7 @@ def generate_users() -> list:
     if Path(file_name).exists():
         with open(file=file_name, mode='r') as f:
             users = f.readlines()
-            users.sort()
+            # users.sort()
             users = list(map(lambda x: x.replace('\n', ''), users))
     else:
         with open(file=file_name, mode='a') as f:
@@ -65,7 +65,7 @@ def generate_car_brands() -> list:
     if Path(file_name).exists():
         with open(file=file_name, mode='r') as f:
             car_brands = f.readlines()
-            car_brands.sort()
+            # car_brands.sort()
             car_brands = list(map(lambda x: json.loads(x.replace('\n', '')), car_brands))
     else:
         with open(file=file_name, mode='a') as f:
@@ -79,9 +79,11 @@ def generate_car_brands() -> list:
     return car_brands
 
 
-def get_users(users, offset=0, per_page=10, search_term=None):
-    return users[offset: offset + per_page] if not search_term else list(
-        filter(lambda user: search_term in user, users))[offset: offset + per_page]
+def get_data(data, offset=0, per_page=10, search_term=None):
+    return data[offset: offset + per_page] if not search_term else list(
+        filter(
+            lambda item: search_term in item if item is str else search_term in item["Model"].lower() or search_term in
+                                                                 item["Make"].lower(), data))[offset: offset + per_page]
 
 
 @app.route('/')
@@ -90,7 +92,7 @@ def index():
     page, per_page, offset = get_page_args(page_parameter='page',
                                            per_page_parameter='per_page')
     total = len(data)
-    pagination_users = get_users(data, offset=offset, per_page=per_page)
+    pagination_users = get_data(data, offset=offset, per_page=per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,
                             css_framework='bootstrap4')
     return Response(json.dumps(pagination_users), mimetype='application/json') if request.args.get(
@@ -104,12 +106,13 @@ def index():
 
 @app.route('/search')
 def search():
-    users = generate_users()
+    data = generate_users() if request.args.get('data') == 'user' else generate_car_brands()
     page, per_page, offset = get_page_args(page_parameter='page',
                                            per_page_parameter='per_page')
-    total = len(users)
+
     search_term = request.args.get('search_term')
-    pagination_users = get_users(users, offset=offset, per_page=per_page, search_term=search_term)
+
+    pagination_users = get_data(data, offset=offset, per_page=per_page, search_term=search_term)
 
     return Response(json.dumps(pagination_users), mimetype='application/json')
 
@@ -121,4 +124,4 @@ def all_users():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
